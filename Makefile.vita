@@ -1,0 +1,123 @@
+TITLE_ID = DSEMU0000
+TARGET   = DeSmuME
+
+PSVITAIP = 10.0.0.183
+
+SOURCE_DIR	= 	src
+INCLUDES 	=	src src/libretro-common/include
+
+DESMUME_SOURCES += \
+	armcpu.cpp \
+    arm_instructions.cpp \
+    bios.cpp \
+    cp15.cpp \
+	common.cpp \
+	debug.cpp \
+	Disassembler.cpp \
+	driver.cpp \
+	emufile.cpp \
+	encrypt.cpp \
+	firmware.cpp \
+	FIFO.cpp \
+	GPU.cpp \
+    mc.cpp \
+	readwrite.cpp \
+	wifi.cpp \
+	path.cpp \
+    MMU.cpp \
+    NDSSystem.cpp \
+	ROMReader.cpp \
+	render3D.cpp \
+	rasterize.cpp \
+	rtc.cpp \
+    saves.cpp \
+    SPU.cpp \
+	matrix.cpp \
+	gfx3d.cpp \
+	texcache.cpp \
+    thumb_instructions.cpp \
+	movie.cpp \
+	mic.cpp \
+	cheatSystem.cpp \
+	slot1.cpp \
+	slot2.cpp \
+	version.cpp \
+	addons/slot2_auto.cpp addons/slot2_mpcf.cpp addons/slot2_paddle.cpp addons/slot2_gbagame.cpp addons/slot2_none.cpp addons/slot2_rumblepak.cpp addons/slot2_guitarGrip.cpp addons/slot2_expMemory.cpp addons/slot2_piano.cpp addons/slot2_passme.cpp addons/slot1_none.cpp addons/slot1_r4.cpp addons/slot1_retail_nand.cpp addons/slot1_retail_auto.cpp addons/slot1_retail_mcrom.cpp addons/slot1comp_mc.cpp addons/slot1comp_rom.cpp addons/slot1comp_protocol.cpp \
+	utils/advanscene.cpp \
+	utils/datetime.cpp \
+	utils/xstring.cpp \
+	utils/vfat.cpp \
+	utils/dlditool.cpp \
+	utils/emufat.cpp \
+	utils/guid.cpp \
+	utils/decrypt/decrypt.cpp \
+	utils/decrypt/header.cpp \
+	utils/decrypt/crc.cpp \
+	utils/tinyxml/tinyxml.cpp \
+	utils/tinyxml/tinystr.cpp \
+	utils/tinyxml/tinyxmlerror.cpp \
+	utils/tinyxml/tinyxmlparser.cpp \
+	utils/libfat/cache.cpp \
+	utils/libfat/directory.cpp \
+	utils/libfat/disc.cpp \
+	utils/libfat/fatdir.cpp \
+	utils/libfat/fatfile.cpp \
+	utils/libfat/filetime.cpp \
+	utils/libfat/file_allocation_table.cpp \
+	utils/libfat/libfat.cpp \
+	utils/libfat/libfat_public_api.cpp \
+	utils/libfat/lock.cpp \
+	utils/libfat/partition.cpp \
+	metaspu/metaspu.cpp
+
+FRONTEND_SOURCES += \
+	vita/main.cpp \
+	vita/task.cpp
+
+LIBRETRO_SOURCES += \
+	libretro-common/compat/compat_strl.c \
+	libretro-common/file/file_path.c \
+	libretro-common/file/retro_dirent.c \
+	libretro-common/file/retro_stat.c \
+	utils\ConvertUTF.c
+
+OBJS = $(DESMUME_SOURCES:%.cpp=$(SOURCE_DIR)/%.o) $(FRONTEND_SOURCES:%.cpp=$(SOURCE_DIR)/%.o) $(LIBRETRO_SOURCES:%.c=$(SOURCE_DIR)/%.o) src/vita/draw.o src/vita/font_data.o
+
+LIBS = -L$(HOME)/vitalibs/lib -lz -lstdc++ -lm -lc -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub	\
+		-lSceCtrl_stub -lSceTouch_stub -lScePower_stub
+
+PREFIX  = arm-vita-eabi
+CC      = $(PREFIX)-gcc
+CFLAGS  = -Wl,-q -Wall -O3 -DVITA $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) -Wfatal-errors \
+			-I$(HOME)/vitalibs/include -DHAVE_LIBZ
+ASFLAGS = $(CFLAGS)
+
+CXX = arm-vita-eabi-g++
+CXXFLAGS = $(CFLAGS)
+
+all: $(TARGET).vpk
+
+%.vpk: eboot.bin
+	vita-mksfoex -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
+	vita-pack-vpk -s param.sfo -b eboot.bin $@
+
+eboot.bin: $(TARGET).velf
+	vita-make-fself $< $@
+
+%.velf: %.elf
+	vita-elf-create $< $@
+
+$(TARGET).elf: $(OBJS)
+	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
+
+clean:
+	@rm -rf $(TARGET).vpk $(TARGET).velf $(TARGET).elf $(OBJS) \
+		eboot.bin param.sfo
+
+vpksend: $(TARGET).vpk
+	curl -T $(TARGET).vpk ftp://$(PSVITAIP):1337/ux0:/
+	@echo "Sent."
+
+send: eboot.bin
+	curl -T eboot.bin ftp://$(PSVITAIP):1337/ux0:/app/$(TITLE_ID)/
+	@echo "Sent."
