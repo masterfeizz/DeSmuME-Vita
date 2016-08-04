@@ -155,7 +155,7 @@ public:
 
 		strncpy(pathToModule, pathStr.c_str(), MAX_PATH);
 #elif defined(VITA)
-		strncpy(pathToModule, "ux0:/", MAX_PATH);
+		strncpy(pathToModule, "ux0:/data/desmume", MAX_PATH);
 #else
 		char *cwd = g_build_filename(g_get_user_config_dir(), "desmume", NULL);
 		g_mkdir_with_parents(cwd, 0755);

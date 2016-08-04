@@ -42,6 +42,10 @@ static bool dirEqualsVolume = (DIRECTORY_DELIMITER_CHAR == VolumeSeparatorChar);
 
 bool Path::IsPathRooted (const std::string &path)
 {
+	#ifdef VITA
+		return true;
+	#endif
+		
 	if (path.empty()) {
 		return false;
 	}

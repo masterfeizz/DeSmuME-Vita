@@ -72,7 +72,9 @@ DESMUME_SOURCES += \
 
 FRONTEND_SOURCES += \
 	vita/main.cpp \
-	vita/task.cpp
+	vita/task.cpp \
+	vita/video.cpp \
+	vita/input.cpp
 
 LIBRETRO_SOURCES += \
 	libretro-common/compat/compat_strl.c \
@@ -81,15 +83,15 @@ LIBRETRO_SOURCES += \
 	libretro-common/file/retro_stat.c \
 	utils\ConvertUTF.c
 
-OBJS = $(DESMUME_SOURCES:%.cpp=$(SOURCE_DIR)/%.o) $(FRONTEND_SOURCES:%.cpp=$(SOURCE_DIR)/%.o) $(LIBRETRO_SOURCES:%.c=$(SOURCE_DIR)/%.o) src/vita/draw.o src/vita/font_data.o
+OBJS = $(DESMUME_SOURCES:%.cpp=$(SOURCE_DIR)/%.o) $(FRONTEND_SOURCES:%.cpp=$(SOURCE_DIR)/%.o) $(LIBRETRO_SOURCES:%.c=$(SOURCE_DIR)/%.o)
 
-LIBS = -L$(HOME)/vitalibs/lib -lz -lstdc++ -lm -lc -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub	\
-		-lSceCtrl_stub -lSceTouch_stub -lScePower_stub
+LIBS = -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub -lSceNet_stub\
+	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lScePgf_stub \
+	-lSceCommonDialog_stub -lScePower_stub -lfreetype -lpng -ljpeg -lz -lm -lc -lstdc++
 
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
-CFLAGS  = -Wl,-q -Wall -O3 -DVITA $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) -Wfatal-errors \
-			-I$(HOME)/vitalibs/include -DHAVE_LIBZ
+CFLAGS  = -Wl,-q -Wall -O3 -DVITA $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) -Wfatal-errors -DHAVE_LIBZ
 ASFLAGS = $(CFLAGS)
 
 CXX = arm-vita-eabi-g++
