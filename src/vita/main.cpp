@@ -27,6 +27,7 @@
 
 #include "video.h"
 #include "input.h"
+#include "menu.h"
 
 #include <stdio.h>
 #include <malloc.h>
@@ -96,12 +97,12 @@ int main()
 	backup_setManualBackupType(0);
 	CommonSettings.ConsoleType = NDS_CONSOLE_TYPE_FAT;
 
-#ifdef HAVE_JIT
-	CommonSettings.use_jit = true;
-	CommonSettings.jit_max_block_size = 40;
-#endif
+	char *filename = menu_FileBrowser();
 
-	if (NDS_LoadROM("ux0:/data/DeSmuME/game.nds") < 0) {
+	if(!filename)
+		goto exit;
+
+	if (NDS_LoadROM(filename) < 0) {
 		goto exit;
 	}
 
@@ -109,7 +110,7 @@ int main()
 
 	int i;
 
-	while (1) {
+	while (execute) {
 
 		for (i = 0; i < FRAMESKIP; i++) {
 			NDS_SkipNextFrame();
@@ -117,7 +118,9 @@ int main()
 		}
 
 		desmume_cycle();
+		video_BeginDrawing();
 		video_DrawFrame();
+		video_EndDrawing();
 
 	}
 

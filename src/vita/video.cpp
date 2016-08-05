@@ -7,6 +7,7 @@
 
 #define PI 3.14159265
 
+vita2d_pgf *video_font;
 vita2d_texture *fb = NULL;
 int video_layout = 0;
 void *data;
@@ -20,6 +21,7 @@ void video_Init(){
 		SCE_GXM_TEXTURE_FORMAT_U1U5U5U5_ABGR);
 
 	data = vita2d_texture_get_datap(fb);
+	video_font = vita2d_load_default_pgf();
 }
 
 void video_Exit(){
@@ -29,12 +31,19 @@ void video_Exit(){
 	}
 }
 
+void video_BeginDrawing(){
+	vita2d_start_drawing();
+	vita2d_clear_screen();
+}
+
+void video_EndDrawing(){
+	vita2d_end_drawing();
+	vita2d_swap_buffers();
+}
+
 void video_DrawFrame(){
 
 	uint16_t *src = (uint16_t *)GPU->GetDisplayInfo().masterNativeBuffer;
-
-	vita2d_start_drawing();
-	vita2d_clear_screen();
 
 	memcpy(data, src, sizeof(uint16_t) * 256 * 192 * 2);
 
@@ -53,8 +62,5 @@ void video_DrawFrame(){
 	}
 
 	vita2d_draw_rectangle(930,514,30,30,RGBA8(30,30,30,255));
-
-	vita2d_end_drawing();
-	vita2d_swap_buffers();
 
 }

@@ -8,7 +8,7 @@
 static bool _setTouchLandscape(unsigned x, unsigned y){
 
   if(x > 301 && x < 659 && y > 272 && y < 541){
-    NDS_setTouchPos((y - 272)/1.4, (x - 301)/1.4);
+    NDS_setTouchPos((x - 301)/1.4, (y - 272)/1.4);
     return true;
   }
 
@@ -76,6 +76,8 @@ void input_UpdateKeypad(){
 
   SceCtrlData pad;
   sceCtrlPeekBufferPositive(0, &pad, 1);
+  if(pad.buttons & 833 == 833)
+    execute = false;
 
   {
     buttonstruct<bool> input = {};

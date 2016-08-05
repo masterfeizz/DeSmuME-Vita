@@ -473,7 +473,8 @@ struct POLY {
 	void load(EMUFILE* is);
 };
 
-#define POLYLIST_SIZE 4096
+#define POLYLIST_SIZE 8096
+
 struct POLYLIST {
 	POLY list[POLYLIST_SIZE];
 	size_t count;

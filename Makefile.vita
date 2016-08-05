@@ -1,7 +1,7 @@
 TITLE_ID = DSEMU0000
 TARGET   = DeSmuME
 
-PSVITAIP = 10.0.0.183
+PSVITAIP = 10.0.0.208
 
 SOURCE_DIR	= 	src
 INCLUDES 	=	src src/libretro-common/include
@@ -68,13 +68,16 @@ DESMUME_SOURCES += \
 	utils/libfat/libfat_public_api.cpp \
 	utils/libfat/lock.cpp \
 	utils/libfat/partition.cpp \
-	metaspu/metaspu.cpp
+	metaspu/metaspu.cpp \
+	arm-common/arm_gen.cpp \
+	arm-common/arm_jit.cpp
 
 FRONTEND_SOURCES += \
 	vita/main.cpp \
 	vita/task.cpp \
 	vita/video.cpp \
-	vita/input.cpp
+	vita/input.cpp \
+	vita/menu.cpp
 
 LIBRETRO_SOURCES += \
 	libretro-common/compat/compat_strl.c \
@@ -91,7 +94,7 @@ LIBS = -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub -lSceNet_stub\
 
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
-CFLAGS  = -Wl,-q -Wall -O3 -DVITA $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) -Wfatal-errors -DHAVE_LIBZ
+CFLAGS  = -Wl,-q -Wall -O3 -DVITA $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) -Wfatal-errors -DHAVE_LIBZ -DHAVE_JIT
 ASFLAGS = $(CFLAGS)
 
 CXX = arm-vita-eabi-g++

@@ -1,5 +1,5 @@
-#ifndef VITA_VIDEO_H
-#define VITA_VIDEO_H
+#ifndef VIDEO_H__
+#define VIDEO_H__
 
 #include <vita2d.h>
 
@@ -25,9 +25,12 @@ enum {
 
 void video_Init();
 void video_Exit();
+void video_BeginDrawing();
+void video_EndDrawing();
 void video_DrawFrame();
 
 extern vita2d_texture *fb;
+extern vita2d_pgf *video_font;
 extern int video_layout;
 
 #endif
