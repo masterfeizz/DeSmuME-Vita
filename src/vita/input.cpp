@@ -76,7 +76,7 @@ void input_UpdateKeypad(){
 
   SceCtrlData pad;
   sceCtrlPeekBufferPositive(0, &pad, 1);
-  if(pad.buttons & 833 == 833)
+  if((pad.buttons & 833) == 833)
     execute = false;
 
   {
