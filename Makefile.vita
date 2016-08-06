@@ -84,7 +84,7 @@ LIBRETRO_SOURCES += \
 	libretro-common/file/file_path.c \
 	libretro-common/file/retro_dirent.c \
 	libretro-common/file/retro_stat.c \
-	utils\ConvertUTF.c
+	utils/ConvertUTF.c
 
 OBJS = $(DESMUME_SOURCES:%.cpp=$(SOURCE_DIR)/%.o) $(FRONTEND_SOURCES:%.cpp=$(SOURCE_DIR)/%.o) $(LIBRETRO_SOURCES:%.c=$(SOURCE_DIR)/%.o)
 
@@ -94,13 +94,16 @@ LIBS = -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub -lSceNet_stub\
 
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
-CFLAGS  = -Wl,-q -Wall -O3 -DVITA $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) -Wfatal-errors -DHAVE_LIBZ -DHAVE_JIT
+CFLAGS  += -O3 -march=armv7-a -mfloat-abi=hard -ffast-math -fsingle-precision-constant
+CFLAGS  += -Wl,-q -Wall -DVITA $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) -Wfatal-errors -DHAVE_LIBZ -DHAVE_JIT
 ASFLAGS = $(CFLAGS)
 
 CXX = arm-vita-eabi-g++
 CXXFLAGS = $(CFLAGS)
 
-all: $(TARGET).vpk
+DEPS := $(OBJS:.o=.d)
+
+all: eboot.bin
 
 %.vpk: eboot.bin
 	vita-mksfoex -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
@@ -115,8 +118,16 @@ eboot.bin: $(TARGET).velf
 $(TARGET).elf: $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 
+%.o: %.c
+	$(CC) -c $(CFLAGS) $*.c -o $*.o
+	$(CC) $(CFLAGS) -MM -MT $@ $*.c > $*.d
+
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $*.cpp -o $*.o
+	$(CXX) $(CXXFLAGS) -MM -MT $@ $*.cpp > $*.d
+
 clean:
-	@rm -rf $(TARGET).vpk $(TARGET).velf $(TARGET).elf $(OBJS) \
+	@rm -rf $(TARGET).vpk $(TARGET).velf $(TARGET).elf $(OBJS) $(DEPS) \
 		eboot.bin param.sfo
 
 vpksend: $(TARGET).vpk
@@ -126,3 +137,5 @@ vpksend: $(TARGET).vpk
 send: eboot.bin
 	curl -T eboot.bin ftp://$(PSVITAIP):1337/ux0:/app/$(TITLE_ID)/
 	@echo "Sent."
+
+-include $(DEPS)
