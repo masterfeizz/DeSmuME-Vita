@@ -28,6 +28,7 @@
 #include "video.h"
 #include "input.h"
 #include "menu.h"
+#include "sound.h"
 
 #include <stdio.h>
 #include <malloc.h>
@@ -55,7 +56,7 @@ GPU3DInterface *core3DList[] = {
 SoundInterface_struct *SNDCoreList[] = {
   &SNDDummy,
   &SNDDummy,
-  &SNDDummy,
+  &SNDVITA,
   NULL
 };
 
@@ -76,6 +77,7 @@ static void desmume_cycle()
 	input_UpdateTouch();
 
     NDS_exec<false>();
+    SPU_Emulate_user();
 }
 
 extern "C" {
@@ -109,6 +111,8 @@ int main()
 	execute = true;
 
 	int i;
+
+	SPU_ChangeSoundCore(SNDCORE_VITA, 735 * 4);
 
 	while (execute) {
 

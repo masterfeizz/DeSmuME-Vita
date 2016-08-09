@@ -77,7 +77,8 @@ FRONTEND_SOURCES += \
 	vita/task.cpp \
 	vita/video.cpp \
 	vita/input.cpp \
-	vita/menu.cpp
+	vita/menu.cpp \
+	vita/sound.cpp
 
 LIBRETRO_SOURCES += \
 	libretro-common/compat/compat_strl.c \
@@ -88,8 +89,8 @@ LIBRETRO_SOURCES += \
 
 OBJS = $(DESMUME_SOURCES:%.cpp=$(SOURCE_DIR)/%.o) $(FRONTEND_SOURCES:%.cpp=$(SOURCE_DIR)/%.o) $(LIBRETRO_SOURCES:%.c=$(SOURCE_DIR)/%.o)
 
-LIBS = -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub -lSceNet_stub\
-	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lScePgf_stub \
+LIBS = -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub -lSceNet_stub \
+	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lScePgf_stub -lSceAudio_stub \
 	-lSceCommonDialog_stub -lScePower_stub -lfreetype -lpng -ljpeg -lz -lm -lc -lstdc++
 
 PREFIX  = arm-vita-eabi
