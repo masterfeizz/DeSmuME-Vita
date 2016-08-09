@@ -86,7 +86,7 @@ char* menu_FileBrowser() {
 		}
 		vita2d_pgf_draw_textf(video_font,500,20, RGBA8(0,0,255,255) ,1.0f,"Press ([ ]) to %s JIT", UserConfiguration.jitEnabled ? "disable" : "enable");
 		vita2d_pgf_draw_textf(video_font,500,40, RGBA8(0,0,255,255) ,1.0f,"Press (O) to %s Sound", UserConfiguration.soundEnabled ? "disable" : "enable");
-		vita2d_pgf_draw_textf(video_font,500,60, RGBA8(0,0,255,255) ,1.0f,"Press Left or Right DPAD to change frameSkip value");
+		vita2d_pgf_draw_textf(video_font,500,60, RGBA8(0,0,255,255) ,1.0f,"Press Left or Right DPAD to change frameSkip");
 		vita2d_pgf_draw_textf(video_font,500,80, RGBA8(0,0,255,255) ,1.0f,"Current frameSkip value: %u", UserConfiguration.frameSkip);
 		video_EndDrawing();
 	}

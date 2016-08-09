@@ -78,7 +78,7 @@ static void desmume_cycle()
 	input_UpdateTouch();
 
     NDS_exec<false>();
-    
+
     if(UserConfiguration.soundEnabled)
     	SPU_Emulate_user();
 }
@@ -87,8 +87,35 @@ extern "C" {
 	int scePowerSetArmClockFrequency(int freq);
 }
 
+#define FPS_CALC_INTERVAL 1000000
+
+static unsigned int frames = 0;
+
+static inline void calc_fps(char fps_str[32])
+{
+	static SceKernelSysClock old = 0;
+	SceKernelSysClock now;
+	SceKernelSysClock diff;
+	float fps;
+
+	sceKernelGetProcessTime(&now);
+	diff = now - old;
+
+	if (diff >= FPS_CALC_INTERVAL) {
+		fps = frames / ((diff/1000)/1000.0f);
+		sprintf(fps_str, "FPS: %.2f", fps);
+		frames = 0;
+		sceKernelGetProcessTime(&old);
+	}
+
+	frames++;
+}
+
+
 int main()
 {
+	char fps_str[32] = {0};
+	
 	scePowerSetArmClockFrequency(444);
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
@@ -127,11 +154,15 @@ int main()
 		for (i = 0; i < UserConfiguration.frameSkip; i++) {
 			NDS_SkipNextFrame();
 			desmume_cycle();
+			frames++;
 		}
 
 		desmume_cycle();
+		calc_fps(fps_str);
+
 		video_BeginDrawing();
 		video_DrawFrame();
+		vita2d_pgf_draw_text(video_font, 10, 30, RGBA8(255, 255, 255, 255),1.0f, fps_str);
 		video_EndDrawing();
 
 	}
