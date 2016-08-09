@@ -1,5 +1,6 @@
 /*
 	Copyright (C) 2009-2015 DeSmuME team
+	Copyright (C) 2015 Sergi Granell (xerpi)
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -14,18 +15,28 @@
 	You should have received a copy of the GNU General Public License
 	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <psp2/kernel/threadmgr.h>
+
 #include <stdio.h>
 
 #include "../utils/task.h"
+#include "debug.h"
+
+#include "config.h"
 
 int getOnlineCores (void)
 {
+	if(UserConfiguration.threadedRendering)
+		return 4;
+	
 	return 1;
 }
 
 class Task::Impl {
 private:
+	SceUID _thread;
 	bool _isThreadRunning;
+
 public:
 	Impl();
 	~Impl();
@@ -36,32 +47,39 @@ public:
 	void shutdown();
 
 	//slock_t *mutex;
+	SceUID condWork;
 	TWork workFunc;
 	void *workFuncParam;
 	void *ret;
 	bool exitThread;
 };
 
-static void taskProc(void *arg)
+#define EVENT_WORK_START 1
+#define EVENT_WORK_END   2
+
+static int taskProc(SceSize args, void *argp)
 {
-	Task::Impl *ctx = (Task::Impl *)arg;
-
-	/*svcSleepThread(100000);
-
+	Task::Impl *ctx = *(Task::Impl **)argp;
 	do {
 
-		svcWaitSynchronization(ctx->mutex, U64_MAX);
+		while (ctx->workFunc == NULL && !ctx->exitThread) {
+			sceKernelWaitEventFlag(ctx->condWork, EVENT_WORK_START,
+				SCE_EVENT_WAITAND, NULL, NULL);
+		}
 
-		if (ctx->workFunc != NULL && !ctx->exitThread) 
+		sceKernelClearEventFlag(ctx->condWork, ~EVENT_WORK_START);
+
+		if (ctx->workFunc != NULL) {
 			ctx->ret = ctx->workFunc(ctx->workFuncParam);
+		} else {
+			ctx->ret = NULL;
+		}
 
 		ctx->workFunc = NULL;
+		sceKernelSetEventFlag(ctx->condWork, EVENT_WORK_END);
+	} while(!ctx->exitThread);
 
-		svcReleaseMutex(ctx->mutex);
-
-		svcSleepThread(10000);
-
-	} while(!ctx->exitThread);*/
+	return 0;
 }
 
 Task::Impl::Impl()
@@ -71,14 +89,15 @@ Task::Impl::Impl()
 	workFuncParam = NULL;
 	ret = NULL;
 	exitThread = false;
+
+	condWork = sceKernelCreateEventFlag("desmume_cond_work", 0, 0, NULL);
 }
 
 Task::Impl::~Impl()
 {
 	shutdown();
+	sceKernelDeleteEventFlag(condWork);
 }
-
-int t = 0;
 
 void Task::Impl::start(bool spinlock)
 {
@@ -90,8 +109,15 @@ void Task::Impl::start(bool spinlock)
 	this->workFuncParam = NULL;
 	this->ret = NULL;
 	this->exitThread = false;
-	this->_isThreadRunning = true;
+	this->_thread = sceKernelCreateThread("desmume_task", taskProc,
+		0x10000100, 0x1000, 0, 0, NULL);
 
+	sceKernelClearEventFlag(condWork, ~(EVENT_WORK_START | EVENT_WORK_END));
+
+	Task::Impl *_this = this;
+	sceKernelStartThread(this->_thread, sizeof(_this), &_this);
+
+	this->_isThreadRunning = true;
 }
 
 void Task::Impl::execute(const TWork &work, void *param)
@@ -102,6 +128,8 @@ void Task::Impl::execute(const TWork &work, void *param)
 
 	this->workFunc = work;
 	this->workFuncParam = param;
+
+	sceKernelSetEventFlag(condWork, EVENT_WORK_START);
 }
 
 void* Task::Impl::finish()
@@ -112,21 +140,30 @@ void* Task::Impl::finish()
 		return returnValue;
 	}
 
+	while (this->workFunc != NULL) {
+		sceKernelWaitEventFlag(condWork, EVENT_WORK_END,
+			SCE_EVENT_WAITAND, NULL, NULL);
+	}
+
+	sceKernelClearEventFlag(condWork, ~EVENT_WORK_END);
+
 	returnValue = this->ret;
-	this->ret = NULL;
 
 	return returnValue;
 }
 
 void Task::Impl::shutdown()
 {
-
 	if (!this->_isThreadRunning) {
 		return;
 	}
 
 	this->workFunc = NULL;
 	this->exitThread = true;
+
+	sceKernelSetEventFlag(condWork, EVENT_WORK_START | EVENT_WORK_END);
+	sceKernelWaitThreadEnd(_thread, NULL, NULL);
+	sceKernelDeleteThread(_thread);
 
 	this->_isThreadRunning = false;
 }
@@ -137,5 +174,3 @@ Task::Task() : impl(new Task::Impl()) {}
 Task::~Task() { delete impl; }
 void Task::execute(const TWork &work, void* param) { impl->execute(work,param); }
 void* Task::finish() { return impl->finish(); }
-
-

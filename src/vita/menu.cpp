@@ -52,6 +52,10 @@ char* menu_FileBrowser() {
 			UserConfiguration.soundEnabled = !UserConfiguration.soundEnabled;
 		}
 
+		if(pad.buttons & SCE_CTRL_LTRIGGER && !buttonPressed){
+			UserConfiguration.threadedRendering = !UserConfiguration.threadedRendering;
+		}
+
 		if(pad.buttons & SCE_CTRL_DOWN && !buttonPressed){
 			cursor++;
 		}
@@ -88,6 +92,7 @@ char* menu_FileBrowser() {
 		vita2d_pgf_draw_textf(video_font,500,40, RGBA8(0,0,255,255) ,1.0f,"Press (O) to %s Sound", UserConfiguration.soundEnabled ? "disable" : "enable");
 		vita2d_pgf_draw_textf(video_font,500,60, RGBA8(0,0,255,255) ,1.0f,"Press Left or Right DPAD to change frameSkip");
 		vita2d_pgf_draw_textf(video_font,500,80, RGBA8(0,0,255,255) ,1.0f,"Current frameSkip value: %u", UserConfiguration.frameSkip);
+		vita2d_pgf_draw_textf(video_font,500,100, RGBA8(0,0,255,255) ,1.0f,"Press L to %s threaded Rendering", UserConfiguration.threadedRendering ? "disable" : "enable");
 		video_EndDrawing();
 	}
 

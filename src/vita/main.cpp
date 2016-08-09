@@ -115,23 +115,23 @@ static inline void calc_fps(char fps_str[32])
 int main()
 {
 	char fps_str[32] = {0};
-	
+
 	scePowerSetArmClockFrequency(444);
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
 
 	video_Init();
 
+	char *filename = menu_FileBrowser();
+
+	if(!filename)
+		goto exit;
+
 	struct NDS_fw_config_data fw_config;
 	NDS_FillDefaultFirmwareConfigData(&fw_config);
   	NDS_Init();
 	NDS_3D_ChangeCore(1);
 	backup_setManualBackupType(0);
-
-	char *filename = menu_FileBrowser();
-
-	if(!filename)
-		goto exit;
 
 	if(UserConfiguration.jitEnabled){
 		CommonSettings.use_jit = true;
