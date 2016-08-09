@@ -721,6 +721,10 @@ int NDS_LoadROM(const char *filename, const char *physicalName, const char *logi
 		gameInfo.crc = 0;
 
 	gameInfo.chipID  = 0xC2;														// The Manufacturer ID is defined by JEDEC (C2h = Macronix)
+	
+	if (gameInfo.isHomebrew())
+		CommonSettings.loadToMemory = true;
+
 	if (!gameInfo.isHomebrew())
 	{
 		gameInfo.chipID |= ((((128 << gameInfo.header.cardSize) / 1024) - 1) << 8);		// Chip size in megabytes minus 1
