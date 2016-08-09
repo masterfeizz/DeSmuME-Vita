@@ -29,6 +29,7 @@
 #include "input.h"
 #include "menu.h"
 #include "sound.h"
+#include "config.h"
 
 #include <stdio.h>
 #include <malloc.h>
@@ -77,7 +78,9 @@ static void desmume_cycle()
 	input_UpdateTouch();
 
     NDS_exec<false>();
-    SPU_Emulate_user();
+    
+    if(UserConfiguration.soundEnabled)
+    	SPU_Emulate_user();
 }
 
 extern "C" {
@@ -97,12 +100,16 @@ int main()
   	NDS_Init();
 	NDS_3D_ChangeCore(1);
 	backup_setManualBackupType(0);
-	CommonSettings.ConsoleType = NDS_CONSOLE_TYPE_FAT;
 
 	char *filename = menu_FileBrowser();
 
 	if(!filename)
 		goto exit;
+
+	if(UserConfiguration.jitEnabled){
+		CommonSettings.use_jit = true;
+		CommonSettings.jit_max_block_size = 60; // Some games can be higher but let's not make it even more unstable
+	}
 
 	if (NDS_LoadROM(filename) < 0) {
 		goto exit;
@@ -112,13 +119,14 @@ int main()
 
 	int i;
 
-	SPU_ChangeSoundCore(SNDCORE_VITA, 735 * 4);
+	if(UserConfiguration.soundEnabled)
+		SPU_ChangeSoundCore(SNDCORE_VITA, 735 * 4);
 
 	while (execute) {
 
-		for (i = 0; i < FRAMESKIP; i++) {
+		for (i = 0; i < UserConfiguration.frameSkip; i++) {
 			NDS_SkipNextFrame();
-			NDS_exec<false>();
+			desmume_cycle();
 		}
 
 		desmume_cycle();

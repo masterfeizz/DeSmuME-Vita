@@ -6,7 +6,9 @@
 #include <vector>
 #include <malloc.h>
 #include <stdio.h>
+
 #include "video.h"
+#include "config.h"
 
 #include "../NDSSystem.h"
 
@@ -39,22 +41,36 @@ char* menu_FileBrowser() {
 			buttonPressed = 0;
 
 		if(pad.buttons & SCE_CTRL_CROSS && !buttonPressed){
-			CommonSettings.use_jit = true;
-			CommonSettings.jit_max_block_size = 40; // Some games can be higher but let's not make it even more unstable
 			break;
 		}
 
 		if(pad.buttons & SCE_CTRL_SQUARE && !buttonPressed){
-			break;
+			UserConfiguration.jitEnabled = !UserConfiguration.jitEnabled;
+		}
+
+		if(pad.buttons & SCE_CTRL_CIRCLE && !buttonPressed){
+			UserConfiguration.soundEnabled = !UserConfiguration.soundEnabled;
 		}
 
 		if(pad.buttons & SCE_CTRL_DOWN && !buttonPressed){
-			cursor++; buttonPressed = 1;
+			cursor++;
 		}
 
 		if(pad.buttons & SCE_CTRL_UP && !buttonPressed){
-			cursor--; buttonPressed = 1;
+			cursor--;
 		}
+
+		if(pad.buttons & SCE_CTRL_LEFT && !buttonPressed){
+			if(UserConfiguration.frameSkip > 0)
+			UserConfiguration.frameSkip--;
+		}
+
+		if(pad.buttons & SCE_CTRL_RIGHT && !buttonPressed){
+			UserConfiguration.frameSkip++;
+		}
+
+		if(pad.buttons)
+			buttonPressed = 1;
 
 		if(cursor < 0)
 			cursor = 0;
@@ -68,7 +84,10 @@ char* menu_FileBrowser() {
 			vita2d_pgf_draw_text(video_font,0,15 + count*15,cursor == count ? RGBA8(0,255,0,255) : RGBA8(255,255,255,255),1.0f,it->d_name);
 			count++;
 		}
-		vita2d_pgf_draw_text(video_font,0,540, RGBA8(0,0,255,255) ,1.0f,"Press (X) to launch with JIT enabled : Press ([]) to launch with JIT disabled");
+		vita2d_pgf_draw_textf(video_font,500,20, RGBA8(0,0,255,255) ,1.0f,"Press ([ ]) to %s JIT", UserConfiguration.jitEnabled ? "disable" : "enable");
+		vita2d_pgf_draw_textf(video_font,500,40, RGBA8(0,0,255,255) ,1.0f,"Press (O) to %s Sound", UserConfiguration.soundEnabled ? "disable" : "enable");
+		vita2d_pgf_draw_textf(video_font,500,60, RGBA8(0,0,255,255) ,1.0f,"Press Left or Right DPAD to change frameSkip value");
+		vita2d_pgf_draw_textf(video_font,500,80, RGBA8(0,0,255,255) ,1.0f,"Current frameSkip value: %u", UserConfiguration.frameSkip);
 		video_EndDrawing();
 	}
 

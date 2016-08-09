@@ -78,7 +78,8 @@ FRONTEND_SOURCES += \
 	vita/video.cpp \
 	vita/input.cpp \
 	vita/menu.cpp \
-	vita/sound.cpp
+	vita/sound.cpp \
+	vita/config.cpp
 
 LIBRETRO_SOURCES += \
 	libretro-common/compat/compat_strl.c \
